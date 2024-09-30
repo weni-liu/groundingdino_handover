@@ -12,5 +12,5 @@ cd GroundingDINO/
 ```
 pip install -e .
 ```
-5.  [checkpoint.pth](https://github.com/user-attachments/assets/651768aa-67f5-4ca4-8f8f-b7e0efc9b054)
+5. Download [Checkpoint.pth](https://github.com/user-attachments/assets/651768aa-67f5-4ca4-8f8f-b7e0efc9b054)
 
