@@ -26,16 +26,16 @@ pip install -e .
 3. 自動生成 XML 標註文件
 
 ## 參數設定
-parser.add_argument("--input_folder",default='D:\\Uploads\\Groundingdino_input')
-parser.add_argument("--output_folder",default='D:\\Uploads')
-parser.add_argument("--device", default="cuda:0")
+ parser.add_argument("--input_folder",default='D:\\Uploads\\Groundingdino_input')
+ parser.add_argument("--output_folder",default='D:\\Uploads')
+ parser.add_argument("--device", default="cuda:0")
 
-#parser.add_argument("--SAM_checkpoints", default="weights/sam_pb4.pth")
-parser.add_argument("--GD_checkpoints", default="weights/checkpoint.pth")
-parser.add_argument("--GD_cinfig_py", default="groundingdino/config/GroundingDINO_SwinT_OGC.py")
-parser.add_argument("--TEXT_PROMPT", default='defect')
-parser.add_argument("--BOX_TRESHOLD", type=float, default=0.2)
-parser.add_argument("--TEXT_TRESHOLD",  type=float, default=0.2)
+ #parser.add_argument("--SAM_checkpoints", default="weights/sam_pb4.pth")
+ parser.add_argument("--GD_checkpoints", default="weights/checkpoint.pth")
+ parser.add_argument("--GD_cinfig_py", default="groundingdino/config/GroundingDINO_SwinT_OGC.py")
+ parser.add_argument("--TEXT_PROMPT", default='defect')
+ parser.add_argument("--BOX_TRESHOLD", type=float, default=0.2)
+ parser.add_argument("--TEXT_TRESHOLD",  type=float, default=0.2)
     
 ## 核心流程
 
