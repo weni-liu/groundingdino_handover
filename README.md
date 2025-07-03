@@ -14,7 +14,7 @@ pip install -e .
 ```
 5. Download [Checkpoint.pth](https://github.com/user-attachments/assets/651768aa-67f5-4ca4-8f8f-b7e0efc9b054)
 
-## grounding_api說明 (grounding_api.py)
+# grounding_api說明 (grounding_api.py)
 
 這段程式是一個自動化物件檢測與標註系統，主要使用 GroundingDINO 模型來檢測圖像中的缺陷並生成標註文件。讓我為您詳細解釋：
 
