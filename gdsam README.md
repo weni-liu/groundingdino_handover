@@ -117,3 +117,158 @@ for obj in root.findall('object'):
 - **遙感影像**：地物目標識別與輪廓提取
 
 相比單純的檢測系統，這個版本提供了**像素級別的精確標註**，大幅提升了標註品質和實用性。
+
+您說得對！讓我重新完整說明這個系統的**資料載入**和**輸出資料**部分：
+
+## 資料載入部分
+
+### 1. 輸入監控機制
+````python
+# 持續監控指定資料夾
+Input = args.input_folder  # 預設: 'D:\\Uploads\\Autolabeling_input'
+while True:
+    time.sleep(0.1)
+    paths = glob(Input+'\\*.txt')  # 監控 .txt 檔案
+    if len(paths) > 0:
+        # 有新檔案時開始處理
+````
+
+### 2. 文字檔案格式
+````python
+# 一般處理檔案格式：
+# 圖片路徑,標籤名稱,fab,md_id,id
+# 例如：d:\uploads\LCD1\4056\Labeling\8338\pic\3350-1T79CV968AM050011.JPG,HDC/R,LCD1,4056,8338
+
+# 結束檔案格式：
+# 檔名以 _end.txt 結尾
+# 例如：20240718_1048_LCD1_4056_8338_end.txt
+````
+
+### 3. 圖像資料載入
+````python
+# 從文字檔案中解析圖片路徑
+img_path = os.path.join(Input, txt.split(',')[0])
+
+# 載入圖像（兩種格式）
+image_source, image = load_image(img_path)  # GroundingDINO格式
+m_image = cv2.imread(img_path)              # OpenCV格式
+````
+
+### 4. 輸入資料夾結構
+```
+D:\Uploads\Autolabeling_input\
+├── control_file.txt        # 控制檔案：包含圖片路徑和標籤資訊
+├── image1.jpg              # 待處理圖片
+├── image2.png              # 待處理圖片
+└── 20240718_1048_LCD1_4056_8338_end.txt  # 結束標記檔案
+```
+
+## 輸出資料部分
+
+### 1. 輸出路徑邏輯
+````python
+# 根據輸入格式決定輸出路徑
+if len(txt.split(',')) == 5:
+    # 有完整資訊：fab, md_id, id
+    fab = txt.split(',')[2]     # 例如：LCD1
+    md_id = txt.split(',')[3]   # 例如：4056
+    id = txt.split(',')[4]      # 例如：8338
+    out_dir = os.path.join(args.output_folder, fab, md_id, 'Labeling', id, 'Label')
+    # 輸出到：D:\Uploads\LCD1\4056\Labeling\8338\Label\
+else:
+    # 簡化格式
+    out_dir = os.path.join(args.output_folder, 'Autolabeling_tmp', 'Label')
+    # 輸出到：D:\Uploads\Autolabeling_tmp\Label\
+````
+
+### 2. XML 標註檔案輸出
+````python
+def create_xml(objects, filename_text, folder_text, width_text, height_text, save_path, save_xml=True):
+    # 生成 Pascal VOC 格式的 XML
+    if save_xml:
+        xml_path = os.path.join(save_path, filename_text.split('.')[0]+'.xml')
+        tree.write(xml_path)
+        print(xml_path)  # 輸出檔案路徑
+    return tree
+
+# XML 檔案範例：image1.xml
+````
+
+### 3. JSON 標註檔案輸出
+````python
+def write_json(image, filename_element, all_contours, save_path, label_name):
+    # 生成 LabelMe 格式的 JSON
+    d = {
+        "version": "4.2.9",
+        "shapes": [],
+        "imagePath": filename_element,
+        "imageHeight": image.shape[0],
+        "imageWidth": image.shape[1]
+    }
+    # 添加精確輪廓資料
+    json_path = os.path.join(save_path, os.path.splitext(filename_element)[0]+'.json')
+    with open(json_path, "w") as f:
+        json.dump(d, f)
+
+# JSON 檔案範例：image1.json
+````
+
+### 4. 結束檔案處理
+````python
+if txt_path0.split('_')[-1] == 'end.txt':
+    # 解析結束檔案名稱
+    txt_ = txt_path0.split('\\')[-1]
+    fab, md_id, id = txt_.split('_')[2], txt_.split('_')[3], txt_.split('_')[4]
+    
+    # 移動到結束資料夾
+    end_dir = os.path.join(args.output_folder, fab, md_id, 'Labeling', id, 'End')
+    endpoint_path = shutil.move(txt_path0, end_dir)
+````
+
+## 完整輸出資料夾結構
+
+```
+D:\Uploads\
+├── LCD1\
+│   └── 4056\
+│       └── Labeling\
+│           └── 8338\
+│               ├── Label\              # 標註檔案輸出
+│               │   ├── image1.xml      # 邊界框標註
+│               │   ├── image1.json     # 精確輪廓標註
+│               │   ├── image2.xml
+│               │   └── image2.json
+│               └── End\                # 處理完成標記
+│                   └── 20240718_1048_LCD1_4056_8338_end.txt
+├── Autolabeling_tmp\
+│   └── Label\                          # 簡化格式輸出
+│       ├── temp_image1.xml
+│       └── temp_image1.json
+└── log\                                # 系統日誌
+    └── process_id.log
+```
+
+## 日誌輸出
+````python
+# 設定日誌系統
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='[%(levelname)s] %(asctime)s %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S',
+    filename=os.path.join(log_path, str(os.getpid())+'.log'),
+    filemode='a')
+
+# 記錄處理過程
+logger.error('End_file has already exist', txt_path0)
+logger.error(e)  # 記錄異常
+````
+
+## 資料流程總結
+
+```
+輸入 → 監控 → 載入 → 處理 → 輸出
+ ↓       ↓      ↓      ↓      ↓
+.txt → 解析 → 圖片 → AI → .xml/.json
+```
+
+這個系統提供了完整的資料處理鏈路，從檔案監控到最終標註檔案輸出，包含錯誤處理和日誌記錄功能。
